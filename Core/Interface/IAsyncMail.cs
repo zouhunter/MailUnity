@@ -13,10 +13,8 @@ using System.Collections.Generic;
 
 namespace MailUnity
 {
-    public interface IResult
+    public interface IAsyncMail
     {
-        bool isSend { get; }
-        bool isErr { get; }
-        string errInfo { get; }
+        UnityAction<IAsyncMail> onComplete { get; set; }
     }
 }

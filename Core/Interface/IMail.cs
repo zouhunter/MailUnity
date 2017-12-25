@@ -21,6 +21,7 @@ namespace MailUnity
         IMail AddSubject(string subject);//添加主题
         IMail AddFiles(params string[] files);//添加文件
         IMail AddAttachment(params Attachment[] files);//添加文件
-        IResult Send(string body);
+        void Send(string body);
+        IAsyncMail SendAsync(string body);
     }
 }

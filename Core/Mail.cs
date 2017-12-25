@@ -19,11 +19,11 @@ namespace MailUnity
         {
             get
             {
-                if(string.IsNullOrEmpty(info))
+                if (string.IsNullOrEmpty(info))
                 {
                     info = "_defult";
                 }
-                if(!_mainInfoDic.ContainsKey(info))
+                if (!_mainInfoDic.ContainsKey(info))
                 {
                     _mainInfoDic[info] = new MailInfo();
                 }
@@ -98,21 +98,31 @@ namespace MailUnity
             return this;
         }
 
-        public IResult Send(string body)
+        public void Send(string body)
         {
             ForEachInfo((info) =>
             {
                 info.Body = body;
                 MailUtility.Send(mailConfig, info);
             });
-            
-            return null;
+        }
+        public IAsyncMail SendAsync(string body)
+        {
+            var mail = new AsyncMail();
+            ForEachInfo((info) =>
+            {
+                info.Body = body;
+                var asyn = MailUtility.SendAsync(mailConfig, info);
+                mail.RecordSubMail(asyn);
+                asyn.onComplete = mail.OnSubMailComplete;
+            });
+            return mail;
         }
         private void ForEachInfo(Action<MailInfo> action)
         {
             foreach (var item in _mainInfoDic)
             {
-                if(item.Value != null)
+                if (item.Value != null)
                 {
                     action.Invoke(item.Value);
                 }
