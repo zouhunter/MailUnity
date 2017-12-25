@@ -3,7 +3,7 @@ mail system for unity,support send mail
 learn from [Mail](https://github.com/mafly/Mail)
 
 ###and simplfy interface:
-...
+```
    public interface IMail
     {
         IMail AddReceivers(string receiverName, params string[] addresses);//添加接收人
@@ -13,4 +13,7 @@ learn from [Mail](https://github.com/mafly/Mail)
         IMail AddAttachment(params Attachment[] files);//添加文件
         IResult Send(string body);
     }
-...
+```
+### and a simple demo
+
+![QuikStart](Doc/send.png)
