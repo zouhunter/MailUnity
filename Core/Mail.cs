@@ -1,15 +1,35 @@
 ﻿using System;
 using System.Net;
 using System.Net.Mail;
+using System.Collections.Generic;
 
 namespace MailUnity
 {
     /// <summary>
     /// 发送邮件
     /// </summary>
-    public class Mail : MailBase
+    public class Mail : IMail
     {
-        private static MailConfig mailConfig;
+        /// <summary>
+        /// 当前配制
+        /// </summary>
+        private MailConfig mailConfig;
+        private Dictionary<string, MailInfo> _mainInfoDic = new Dictionary<string, MailInfo>();
+        private MailInfo this[string info]
+        {
+            get
+            {
+                if(string.IsNullOrEmpty(info))
+                {
+                    info = "_defult";
+                }
+                if(!_mainInfoDic.ContainsKey(info))
+                {
+                    _mainInfoDic[info] = new MailInfo();
+                }
+                return _mainInfoDic[info];
+            }
+        }
 
         /// <summary>
         /// 初始化 MailUnity 的空实例
@@ -17,7 +37,7 @@ namespace MailUnity
         /// </summary>
         public Mail()
         {
-            mailConfig = new MailConfig().Create();
+            mailConfig = MailConfig.Defult;
         }
 
         /// <summary>
@@ -29,128 +49,74 @@ namespace MailUnity
             mailConfig = config;
         }
 
-        /// <summary>
-        /// 发送邮件
-        /// </summary>
-        /// <param name="receiver">接收人邮箱</param>
-        /// <param name="body">邮件内容</param>
-        public void Send(string receiver, string body)
+
+        public IMail AddReceivers(string receiverName, params string[] addresses)
         {
-            Send(new MailInfo { Receiver = receiver, ReceiverName = receiver, Body = body, Subject = body });
+            this[receiverName].Receivers.AddRange(addresses);
+            return this;
         }
 
-        /// <summary>
-        /// 发送邮件
-        /// </summary>
-        /// <param name="receiver">接收人邮箱</param>
-        /// <param name="body">邮件内容</param>
-        /// <param name="isSingleSend">是否群发单显</param>
-        public void Send(string receiver, string body, bool isSingleSend)
+        public IMail AddSubReceivers(params string[] addresses)
         {
-            Send(new MailInfo { Receiver = receiver, Body = body, Subject = body }, isSingleSend);
-        }
-
-        /// <summary>
-        /// 发送邮件
-        /// </summary>
-        /// <param name="receiver">接收人邮箱</param>
-        /// <param name="receiverName">接收人姓名</param>
-        /// <param name="body">邮件内容</param>
-        public void Send(string receiver, string receiverName, string body)
-        {
-            Send(new MailInfo { Receiver = receiver, ReceiverName = receiverName, Body = body, Subject = body });
-        }
-
-        /// <summary>
-        /// 发送邮件
-        /// </summary>
-        /// <param name="receiver">接收人邮箱</param>
-        /// <param name="receiverName">接收人姓名</param>
-        /// <param name="subject">邮件主题</param>
-        /// <param name="body">邮件内容</param>
-        public void Send(string receiver, string receiverName, string subject, string body)
-        {
-            Send(new MailInfo { Receiver = receiver, ReceiverName = receiverName, Body = body, Subject = subject });
-        }
-
-        /// <summary>
-        /// 发送邮件
-        /// </summary>
-        /// <param name="receiver">接收人邮箱</param>
-        /// <param name="subject">邮件主题</param>
-        /// <param name="body">邮件内容</param>
-        /// <param name="isSingleSend">是否群发单显</param>
-        public void Send(string receiver, string subject, string body, bool isSingleSend)
-        {
-            Send(new MailInfo { Receiver = receiver, Body = body, Subject = subject }, isSingleSend);
-        }
-
-        /// <summary>
-        /// 发送邮件（带附件）
-        /// </summary>
-        /// <param name="info">接收人信息 MailUnity.MailInfo </param>
-        /// <param name="attachments">附件列表 System.Net.Mail.Attachment </param>
-        public void Send(MailInfo info, params Attachment[] attachments)
-        {
-            var message = new MailMessage();
-            foreach (var item in attachments)
+            ForEachInfo((info) =>
             {
-                message.Attachments.Add(item);
-            }
-            try
+                info.SubReceivers.AddRange(addresses);
+            });
+            return this;
+        }
+
+        public IMail AddSubject(string subject)
+        {
+            ForEachInfo((info) =>
             {
-                Send(info, message);
-            }
-            catch (Exception e)
+                info.Subject = subject;
+            });
+            return this;
+        }
+
+        public IMail AddFiles(params string[] files)
+        {
+            ForEachInfo((info) =>
             {
-                throw e;
+                foreach (var file in files)
+                {
+                    info.Files.Add(new Attachment(file));
+                }
+            });
+            return this;
+        }
+
+        public IMail AddAttachment(params Attachment[] files)
+        {
+            ForEachInfo((info) =>
+            {
+                foreach (var file in files)
+                {
+                    info.Files.Add(file);
+                }
+            });
+            return this;
+        }
+
+        public IResult Send(string body)
+        {
+            ForEachInfo((info) =>
+            {
+                info.Body = body;
+                MailUtility.Send(mailConfig, info);
+            });
+            
+            return null;
+        }
+        private void ForEachInfo(Action<MailInfo> action)
+        {
+            foreach (var item in _mainInfoDic)
+            {
+                if(item.Value != null)
+                {
+                    action.Invoke(item.Value);
+                }
             }
-        }
-
-        /// <summary>
-        /// 发送邮件（带附件）
-        /// </summary>
-        /// <param name="info">接收人信息 MailUnity.MailInfo </param>
-        /// <param name="filePath">附件路径 System.String </param>
-        public void Send(MailInfo info, string filePath)
-        {
-            var message = new MailMessage();
-            message.Attachments.Add(new Attachment(filePath));
-            Send(info, message);
-        }
-
-        /// <summary>
-        /// 发送邮件（带附件）
-        /// </summary>
-        /// <param name="info">接收人信息 MailUnity.MailInfo </param>
-        /// <param name="filePath">附件路径 System.String </param>
-        /// <param name="isSingleSend">是否群发单显</param>
-        public void Send(MailInfo info, string filePath, bool isSingleSend)
-        {
-            var message = new MailMessage();
-            message.Attachments.Add(new Attachment(filePath));
-            Send(info, isSingleSend, message);
-        }
-
-        /// <summary>
-        /// 发送邮件
-        /// </summary>
-        /// <param name="info">接收人信息 MailUnity.MailInfo </param>
-        /// <param name="message">默认为null。 System.Net.Mail.MailMessage </param>
-        public void Send(MailInfo info, MailMessage message)
-        {
-            base.Send(info, mailConfig, message);
-        }
-
-        /// <summary>
-        /// 发送邮件
-        /// </summary>
-        /// <param name="info">接收人信息 MailUnity.MailInfo </param>
-        /// <param name="isSingleSend">是否群发单显</param>
-        /// <param name="message">默认为null。 System.Net.Mail.MailMessage </param>
-        public void Send(MailInfo info, bool isSingleSend, MailMessage message = null)
-        {
-            base.Send(info, mailConfig, message, isSingleSend);
         }
     }
 }

@@ -8,7 +8,6 @@ namespace MailUnity
     [Serializable]
     public class MailConfig
     {
-        private string _path = string.Empty;
         private static MailConfig defultConfig;
 
         /// <summary>
@@ -20,41 +19,20 @@ namespace MailUnity
             {
                 if (defultConfig == null)
                 {
-                    defultConfig = CreateDefult();
+                    defultConfig = new MailConfig()
+                    {
+                        Host = "smtp.163.com",
+                        Port = 25,
+                        User = "zouhunter52@163.com",
+                        Password = "hunterzou52",
+                        IsHtml = true,
+                        From = "zouhunter52@163.com",
+                        DisplayName = "Hunter",
+                        EnableSsl = false
+                    };
                 }
                 return defultConfig;
             }
-        }
-        /// <summary>
-        /// 读取默认路径（Config/MailSetting.config）下的配置文件
-        /// </summary>
-        /// <returns></returns>
-        public MailConfig Create()
-        {
-            try
-            {
-                return CreateDefult();
-            }
-            catch
-            {
-                return new MailConfig();
-            }
-        }
-
-        private static MailConfig CreateDefult()
-        {
-            var config = new MailConfig()
-            {
-                Host = "smtp.163.com",
-                Port = 25,
-                User = "zouhunter52@163.com",
-                Password = "hunterzou52",
-                IsHtml = true,
-                From = "zouhunter52@163.com",
-                DisplayName = "Hunter",
-                EnableSsl = false
-            };
-            return config;
         }
 
         /// <summary>
