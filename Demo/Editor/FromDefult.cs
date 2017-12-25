@@ -8,15 +8,17 @@ public class FromDefult {
     public void SendToMyMails()
     {
         var mailService = new MailUnity.Mail();
-        var list = new System.Collections.Generic.List<string>() { "zouhangtezbm@126.com", "1063627025@qq.com" };
         //群发单显参数：多接收者邮箱、内容
-        mailService.AddReceivers("群发测试！", list.ToArray());
+        mailService.AddReceivers("群发测试！", "zouhangtezbm@126.com", "1063627025@qq.com");
 
+        var list = new System.Collections.Generic.List<string>() { "zouhangtezbm@126.com", "1063627025@qq.com" };
         //参数：接收者邮箱、内容
         foreach (var item in list){
             mailService.AddReceivers("单发测试" + item, item);
         }
-
+        mailService.AddSubject("[测试]");
+        mailService.AddSubReceivers("1063627025@qq.com");
+        mailService.AddFiles(Application.dataPath + "/MailUnity/Demo/testFile.txt");
         mailService.Send("你好01");
 
         ////参数：接收者邮箱、接收者名字、内容

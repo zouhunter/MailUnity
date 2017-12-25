@@ -11,23 +11,33 @@ using UnityEngine.Assertions.Comparers;
 using System.Collections;
 using System.Collections.Generic;
 using System;
+using MailUnity;
 
 public class MailSendPanel : MonoBehaviour {
     [SerializeField]
     private InputField m_userNames;
-    private List<string> userNames;
-
+    [SerializeField]
+    private Button m_send;
+    private Mail mail;
+    private string[] users;
+    private string fileTest;
     private void Awake()
     {
         m_userNames.onEndEdit.AddListener(OnEndEditNames);
+        m_send.onClick.AddListener(OnSend);
+        mail = new MailUnity.Mail();
+        fileTest = Application.dataPath + "/MailUnity/Demo/testFile.txt";
+    }
+
+    private void OnSend()
+    {
+        if (users == null) return;
+        mail.AddReceivers("Runtime", users).AddFiles(fileTest).Send("Hellow Mail") ;
     }
 
     private void OnEndEditNames(string arg0)
     {
-        //var mailService = new MailUnity.Mail();
-        ////群发单显参数：多接收者邮箱、内容
-        //mailService.Send("zouhangtezbm@126.com,1063627025@qq.com", "测试【群发单显】邮件发送！", true);
-        ////参数：接收者邮箱、内容
-        //mailService.Send("zouhangtezbm@126.com,1063627025@qq.com", "测试邮件发送！");
+        users = arg0.Split(new char[] { ';','；',';'});
     }
+
 }

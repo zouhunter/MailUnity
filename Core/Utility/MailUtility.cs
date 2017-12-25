@@ -32,6 +32,10 @@ namespace MailUnity
 
             if (!string.IsNullOrEmpty(info.Body)) message.Body = info.Body;
 
+            foreach (var item in info.Files){
+                message.Attachments.Add(item);
+            }
+
             SmtpClientSend(mailConfig, message);
         }
 

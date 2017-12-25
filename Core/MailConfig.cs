@@ -5,7 +5,6 @@ namespace MailUnity
     /// <summary>
     /// 邮件配置信息
     /// </summary>
-    [Serializable]
     public class MailConfig
     {
         private static MailConfig defultConfig;
